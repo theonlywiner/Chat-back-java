@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="chatchatback.mapper.BookMapper">
+    <!-- 启用自定义缓存 -->
+    <!-- eviction="FIFO" 缓存淘汰策略为先进先出-->
+    <!-- flushInterval="60000" 每 60 秒自动清空一次缓存-->
+    <!-- size="512" 最多缓存 512 个对象-->
+    <!-- readOnly="true" 缓存数据为只读模式-->
+    <cache type="org.mybatis.caches.ehcache.EhcacheCache"
+           eviction="FIFO"
+           flushInterval="60000"
+           size="512"
+           readOnly="true"/>
+
+    <!-- 1.首页信息查询 -->
+    <select id="selectAllBooksOptimized" resultType="chatchatback.pojo.ClassicPoemInfo">
+        SELECT id, title, chapterFirstId FROM (
+        SELECT bs.id, bs.name AS title, MIN(c.id) AS chapterFirstId
+        FROM bookseries bs
+        LEFT JOIN books b ON bs.id = b.series_id
+        LEFT JOIN chapters c ON b.id = c.book_id
+        GROUP BY bs.id
+        UNION ALL
+        SELECT b.id, b.name AS title, MIN(c.id) AS chapterFirstId
+        FROM books b
+        LEFT JOIN chapters c ON b.id = c.book_id
+        WHERE b.series_id IS NULL
+        GROUP BY b.id
+        UNION ALL
+        SELECT id, name AS title, id AS chapterFirstId
+        FROM chapters
+        WHERE book_id IS NULL
+        ) t ORDER BY id
+    </select>
+
+    <!-- 2.根据id查询chapter表的数据 -->
+    <select id="selectPoemDetailById" resultType="chatchatback.pojo.ClassicPoemInfo">
+        select id, name as title, chapters.full_ancient_content as content, chapters.full_modern_content as translation
+        from chapters
+        where id = #{chapterId}
+    </select>
+
+    <!--3.根据id查询paragraphs表的数据，每一行古文和翻译-->
+    <select id="selectContentPairsById" resultType="chatchatback.pojo.ContentPair">
+        select ancient_text as ancientContent, modern_text as modernContent
+        from paragraphs
+        where chapter_id = #{chapterId}
+    </select>
+
+    <!-- 关联关系查询 -->
+    <select id="selectChapterRelations" resultType="map">
+        SELECT
+            book_id AS book_id,
+            (SELECT series_id FROM books WHERE id = c.book_id) AS series_id,
+            name AS chapter_name
+        FROM chapters c
+        WHERE id = #{chapterId}
+    </select>
+
+    <!-- 系列信息 -->
+    <select id="selectSeriesById" resultType="map">
+        SELECT id, name FROM bookseries WHERE id = #{seriesId}
+    </select>
+
+    <!-- 书籍列表 -->
+    <select id="selectBooksBySeries" resultType="map">
+        SELECT id, name FROM books
+        WHERE series_id = #{seriesId}
+        ORDER BY id
+    </select>
+
+    <!-- 章节列表 -->
+    <select id="selectChaptersByBook" resultType="map">
+        SELECT id, name FROM chapters
+        WHERE book_id = #{bookId}
+        ORDER BY id
+    </select>
+
+    <!-- 书籍信息 -->
+    <select id="selectBookById" resultType="map">
+        SELECT id, name FROM books WHERE id = #{bookId}
+    </select>
+
+    <!--搜索分页查询-->
+    <select id="list" resultType="chatchatback.pojo.ClassicPoemInfo">
+        SELECT
+        c.id,
+        CONCAT_WS('-',
+        IFNULL(bs.name, ''),
+        IFNULL(b.name, ''),
+        c.name
+        ) AS title,
+        a.name AS author,
+        a.dynasty,
+        LEFT(c.full_ancient_content, 20) AS description,
+        c.full_ancient_content AS content,
+        c.full_modern_content AS translation
+        FROM chapters c
+        LEFT JOIN books b ON c.book_id = b.id
+        LEFT JOIN bookseries bs ON b.series_id = bs.id
+        LEFT JOIN authors a ON c.author_id = a.id
+        <where>
+            <if test="title != null and title != ''">
+                (c.name LIKE CONCAT('%', #{title}, '%')
+                OR b.name LIKE CONCAT('%', #{title}, '%')
+                OR bs.name LIKE CONCAT('%', #{title}, '%'))
+            </if>
+            <if test="startIndex !=null and endIndex != null">
+                and #{endIndex} >= c.id and c.id >= #{startIndex}
+            </if>
+        </where>
+    </select>
+</mapper>
+
+<!--<where>-->
+<!--<if test="title != null and title != ''">-->
+<!--    (c.name LIKE CONCAT('%', #{title}, '%')-->
+<!--    OR b.name LIKE CONCAT('%', #{title}, '%')-->
+<!--    OR bs.name LIKE CONCAT('%', #{title}, '%'))-->
+<!--</if>-->
+<!--</where>-->
