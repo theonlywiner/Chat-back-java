@@ -1,7 +1,7 @@
 package chatchatback.controller;
 
-import chatchatback.pojo.ClassicPoemInfo;
-import chatchatback.pojo.Result;
+import chatchatback.pojo.entity.ClassicPoemInfo;
+import chatchatback.pojo.dto.Result;
 import chatchatback.service.BookService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,16 +1,15 @@
 package chatchatback.service.impl;
 
+import chatchatback.constant.MessageConstant;
+import chatchatback.exception.AccountNotFoundException;
+import chatchatback.exception.PasswordErrorException;
 import chatchatback.mapper.UserMapper;
-import chatchatback.pojo.LoginInfo;
+import chatchatback.pojo.dto.LoginInfoDTO;
 import chatchatback.service.UserService;
-import chatchatback.utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -19,36 +18,37 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserMapper userMapper;
 
+    // 注入 BCrypt 加密器
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    //注册接口
+    // 注册接口
     @Override
-    public boolean register(LoginInfo loginInfo) {
-        //1.判断是否存在相同用户名的用户 反之添加用户
-        if (userMapper.findByUsername(loginInfo.getUsername()) != null) {
-            return false;
+    public void register(LoginInfoDTO loginInfoDTO) {
+        // 判断用户名是否已存在
+        if (userMapper.getByUsername(loginInfoDTO.getUsername()) != null) {
+            throw new AccountNotFoundException(MessageConstant.ALREADY_EXIST);
         }
-        //2.使用BCrypt加密密码
-        String encodedPassword = BCrypt.hashpw(loginInfo.getPassword(), BCrypt.gensalt());
-        userMapper.addUser(loginInfo.getUsername(), encodedPassword);
-        return true;
+        // 使用 BCrypt 加密原始密码
+        String encodedPassword = passwordEncoder.encode(loginInfoDTO.getPassword());
+        userMapper.addUser(loginInfoDTO.getUsername(), encodedPassword);
     }
 
-    //登录接口
+    // 登录接口
     @Override
-    public LoginInfo login(LoginInfo loginInfo) {
-        LoginInfo user = userMapper.findByUsername(loginInfo.getUsername());
-        //不存在用户名和验证密码是否匹配
-        if (user == null || !BCrypt.checkpw(loginInfo.getPassword(), user.getPassword())) return null;
+    public LoginInfoDTO login(LoginInfoDTO loginInfoDTO) {
+        String username = loginInfoDTO.getUsername();
+        String rawPassword = loginInfoDTO.getPassword(); // 原始密码
 
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("id", user.getId());
-        claims.put("username", user.getUsername());
-        String jwt = JwtUtils.generateJwt(claims);
+        LoginInfoDTO user = userMapper.getByUsername(username);
+        if (user == null) {
+            throw new AccountNotFoundException(MessageConstant.ACCOUNT_NOT_FOUND);
+        }
 
-        LoginInfo loginInfoGet = new LoginInfo();
-        loginInfoGet.setId(user.getId());
-        loginInfoGet.setUsername(user.getUsername());
-        loginInfoGet.setToken(jwt);
-        return loginInfoGet;
+        // 直接对比原始密码和数据库中的 BCrypt 哈希值
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
+        }
+
+        return user;
     }
 }

@@ -19,15 +19,44 @@ spring:
       #最大请求大小（包括所有文件和表单数据）
       max-request-size: 100MB
 
+  data:
+    redis:
+      # 超时配置
+      timeout: 5000ms
+      host: localhost
+      port: 6379
+      password: 123456
+      database: 1
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 18000 # 30分钟过期时间
+      use-key-prefix: true
+      key-prefix: "chatchat:"
+
 
 mybatis:
   configuration:
     #配置mybatis的日志输出
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     #开启驼峰命名映射开关
     map-underscore-to-camel-case: true
 
 #配置事务管理日志级别
 logging:
   level:
-    org.springframework.jdbc.support.JdbcTransactionManager: debug
+    chatchatback:
+      mapper: debug
+      service: info
+      controller: info
+
+chatchat:
+    jwt:
+      #管理端配置
+      # 设置jwt签名加密时使用的秘钥
+      admin-secret-key: zisuChatChatXinTaiBengDiaoLeKuaiLaiBangBangWo
+      # 设置jwt过期时间
+      admin-ttl: 7200000
+      # 设置前端传递过来的令牌名称
+      admin-token-name: token

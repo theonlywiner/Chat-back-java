@@ -16,7 +16,7 @@
            readOnly="true"/>
 
     <!-- 1.首页信息查询 -->
-    <select id="selectAllBooksOptimized" resultType="chatchatback.pojo.ClassicPoemInfo">
+    <select id="selectAllBooksOptimized" resultType="chatchatback.pojo.entity.ClassicPoemInfo">
         SELECT id, title, chapterFirstId FROM (
         SELECT bs.id, bs.name AS title, MIN(c.id) AS chapterFirstId
         FROM bookseries bs
@@ -37,14 +37,14 @@
     </select>
 
     <!-- 2.根据id查询chapter表的数据 -->
-    <select id="selectPoemDetailById" resultType="chatchatback.pojo.ClassicPoemInfo">
+    <select id="selectPoemDetailById" resultType="chatchatback.pojo.entity.ClassicPoemInfo">
         select id, name as title, chapters.full_ancient_content as content, chapters.full_modern_content as translation
         from chapters
         where id = #{chapterId}
     </select>
 
     <!--3.根据id查询paragraphs表的数据，每一行古文和翻译-->
-    <select id="selectContentPairsById" resultType="chatchatback.pojo.ContentPair">
+    <select id="selectContentPairsById" resultType="chatchatback.pojo.dto.ContentPair">
         select ancient_text as ancientContent, modern_text as modernContent
         from paragraphs
         where chapter_id = #{chapterId}
@@ -85,7 +85,7 @@
     </select>
 
     <!--搜索分页查询-->
-    <select id="list" resultType="chatchatback.pojo.ClassicPoemInfo">
+    <select id="list" resultType="chatchatback.pojo.entity.ClassicPoemInfo">
         SELECT
         c.id,
         CONCAT_WS('-',

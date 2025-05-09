@@ -1,13 +1,14 @@
 package chatchatback.controller;
 
-import chatchatback.pojo.*;
+import chatchatback.pojo.dto.*;
+import chatchatback.pojo.entity.ClassicPoemInfo;
+import chatchatback.pojo.vo.NavTreeDataVO;
 import chatchatback.service.BookService;
 import jakarta.validation.constraints.Min;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
@@ -24,16 +25,19 @@ public class ArticleController {
     /**
      *  1. 根据chapter的id获取文章详情
      * */
+
     @GetMapping("/getArticleDetail")
     public Result getArticleDetail(
             @RequestParam @Min(0) Long id) {
+
+        log.info("文章详情查询：{}", id);
 
         try {
             Map<String, Object> result = new HashMap<>();
             // 获取文章详情
             ClassicPoemInfo poemInfo = bookService.getClassicPoemInfo(id);
             // 获取导航树
-            List<NavTreeData> navTree = bookService.getNavTree(id);
+            List<NavTreeDataVO> navTree = bookService.getNavTree(id);
 
             result.put("result", poemInfo);
             result.put("navTreeData", navTree);
@@ -47,7 +51,7 @@ public class ArticleController {
      *  2.1 查询所有chapter数据，搜索列表展示
      * */
     @GetMapping("/getArticleList")
-    public Result getArticleList(SearchQueryParam param) {
+    public Result getArticleList(SearchQueryParamDTO param) {
         try {
             log.info("文章列表查询：{}", param);
             PageResult<ClassicPoemInfo> result = bookService.page(param);
@@ -62,7 +66,7 @@ public class ArticleController {
      *  2.2 携带title查询
      * */
     @GetMapping("/searchArticles")
-    public Result searchArticle(SearchQueryParam param) {
+    public Result searchArticle(SearchQueryParamDTO param) {
         try {
             log.info("文章title查询：{}", param);
             PageResult<ClassicPoemInfo> result = bookService.searchTitle(param);

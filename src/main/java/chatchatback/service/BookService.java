@@ -1,6 +1,9 @@
 package chatchatback.service;
 
-import chatchatback.pojo.*;
+import chatchatback.pojo.dto.SearchQueryParamDTO;
+import chatchatback.pojo.entity.ClassicPoemInfo;
+import chatchatback.pojo.vo.NavTreeDataVO;
+import chatchatback.pojo.dto.PageResult;
 import jakarta.validation.constraints.Min;
 import org.apache.ibatis.javassist.NotFoundException;
 
@@ -14,10 +17,10 @@ public interface BookService {
     ClassicPoemInfo getClassicPoemInfo(@Min(0) Long  id) throws NotFoundException;
 
     //3.书籍详情页导航树获取
-    List<NavTreeData> getNavTree(@Min(0) Long  id);
+    List<NavTreeDataVO> getNavTree(@Min(0) Long  id);
 
     //4.搜素列表
-    PageResult<ClassicPoemInfo> page(SearchQueryParam searchQueryParam);
+    PageResult<ClassicPoemInfo> page(SearchQueryParamDTO searchQueryParam);
 
-    PageResult<ClassicPoemInfo> searchTitle(SearchQueryParam param);
+    PageResult<ClassicPoemInfo> searchTitle(SearchQueryParamDTO param);
 }

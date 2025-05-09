@@ -1,13 +1,11 @@
 package chatchatback.mapper;
 
-import chatchatback.pojo.ClassicPoemInfo;
-import chatchatback.pojo.ContentPair;
-import chatchatback.pojo.NavTreeData;
-import chatchatback.pojo.SearchQueryParam;
+import chatchatback.pojo.dto.SearchQueryParamDTO;
+import chatchatback.pojo.entity.ClassicPoemInfo;
+import chatchatback.pojo.dto.ContentPair;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -38,7 +36,7 @@ public interface BookMapper {
     Map<String, Object> selectBookById(Long  bookId);
 
     //搜索分页查询(传入开始索引和结束索引)
-    List<ClassicPoemInfo> list(SearchQueryParam searchQueryParam);
+    List<ClassicPoemInfo> list(SearchQueryParamDTO searchQueryParam);
 
     //查询总数
     @Select("select count(*) from chapters")

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="chatchatback.mapper.PoemMapper">
+
+    <!-- 定义自定义结果映射 -->
+    <resultMap id="PoemResultMap" type="chatchatback.pojo.entity.Poem">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="dynasty" column="dynasty"/>
+        <result property="authorId" column="author_id"/>
+        <result property="fullAncientContent" column="full_ancient_content"/>
+        <result property="fullModernContent" column="full_modern_content"/>
+        <result property="annotation" column="annotation"/>
+        <result property="appreciation" column="appreciation"/>
+        <result property="background" column="background"/>
+        <result property="peopleAppreciation" column="people_appreciation"/>
+        <!-- 关键配置：指定类型处理器 -->
+        <result
+                property="links"
+                column="links"
+                typeHandler="chatchatback.handler.JsonListTypeHandler"/>
+    </resultMap>
+
+    <!-- 修改查询使用 resultMap -->
+    <select id="getPoemsByGradeId" resultMap="PoemResultMap">
+        SELECT
+        p.id,
+        p.name,
+        p.dynasty,
+        p.author_id,
+        p.full_ancient_content,
+        p.full_modern_content,
+        p.links,
+        ap.name as author
+        FROM poems p
+        LEFT JOIN authors_poems ap on p.author_id = ap.id
+        INNER JOIN poem_textbook pt ON pt.poem_id = p.id
+        where pt.grade_id = #{gradeId}
+        <if test="name != null and name != ''">
+            AND p.name LIKE CONCAT('%', #{name}, '%')
+        </if>
+        ORDER BY p.id ASC
+    </select>
+
+    <select id="getPoemById" resultMap="PoemResultMap">
+        SELECT
+            p.id,
+            p.name,
+            p.dynasty,
+            p.author_id,
+            p.full_ancient_content,
+            p.full_modern_content,
+            p.annotation,
+            p.appreciation,
+            p.background,
+            p.people_appreciation,
+            p.links,
+            ap.name as author
+        FROM poems p
+                 LEFT JOIN authors_poems ap on p.author_id = ap.id
+        where p.id = #{id}
+    </select>
+
+    <select id="getAllPoems" resultMap="PoemResultMap">
+        SELECT
+            p.id,
+            p.name,
+            p.dynasty,
+            p.author_id,
+            ap.name AS author, -- 联表获取作者名
+            p.full_ancient_content,
+            p.full_modern_content
+        FROM poems p
+                 INNER JOIN authors_poems ap ON p.author_id = ap.id
+        WHERE p.id >= #{lastId}
+        <if test="name != null">
+            AND p.name LIKE CONCAT('%', #{name}, '%')
+        </if>
+        ORDER BY p.id ASC
+        LIMIT #{pageSize}
+    </select>
+
+    <!-- 根据条件查找分页起始ID -->
+    <select id="findOffsetId" resultType="java.lang.Long">
+        SELECT p.id
+        FROM poems p
+        <include refid="queryConditions"/>
+        ORDER BY p.id ASC
+        LIMIT 1 OFFSET #{offset}
+    </select>
+
+    <!-- 总数统计优化 -->
+    <select id="countAllPoems" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT p.id)
+        FROM poems p
+        <include refid="queryConditions"/>
+    </select>
+
+    <select id="getPoemNameByIds" resultType="chatchatback.pojo.entity.PoemListVO">
+        SELECT p.id, p.name
+        FROM poems p
+        WHERE p.id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 通用查询条件 -->
+    <sql id="queryConditions">
+        <if test="gradeId != null and gradeId != 0">
+            INNER JOIN poem_textbook pt ON pt.poem_id = p.id AND pt.grade_id = #{gradeId}
+        </if>
+        <where>
+            <if test="name != null">
+                AND p.name LIKE CONCAT('%', #{name}, '%')
+            </if>
+        </where>
+    </sql>
+</mapper>

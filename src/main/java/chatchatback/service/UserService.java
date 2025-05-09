@@ -1,11 +1,11 @@
 package chatchatback.service;
 
 
-import chatchatback.pojo.LoginInfo;
+import chatchatback.pojo.dto.LoginInfoDTO;
 
 public interface UserService {
 
-    boolean register(LoginInfo loginInfo);
+    void register(LoginInfoDTO loginInfoDTO);
 
-    LoginInfo login(LoginInfo loginInfo);
+    LoginInfoDTO login(LoginInfoDTO loginInfoDTO);
 }
