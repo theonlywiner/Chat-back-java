@@ -5,18 +5,21 @@ import chatchatback.mapper.PoemMapper;
 import chatchatback.pojo.dto.PageResult;
 import chatchatback.pojo.dto.PoemPageQueryDTO;
 import chatchatback.pojo.dto.PoemPageQueryGradeDTO;
+import chatchatback.pojo.entity.Dynasty;
 import chatchatback.pojo.entity.Grade;
 import chatchatback.pojo.entity.Poem;
 import chatchatback.pojo.entity.PoemListVO;
 import chatchatback.service.PoemService;
+import chatchatback.utils.PageQueryUtils;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import org.apache.ibatis.jdbc.Null;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public class PoemServiceImpl implements PoemService {
 
@@ -24,6 +27,9 @@ public class PoemServiceImpl implements PoemService {
     private PoemMapper poemMapper;
     @Autowired
     private GradeMapper gradeMapper;
+
+    @Autowired
+    private PageQueryUtils pageQueryUtils;
 
     /**
      * 获取年级列表
@@ -63,13 +69,13 @@ public class PoemServiceImpl implements PoemService {
     @Override
     public PageResult<PoemListVO> getAllPoems(PoemPageQueryDTO dto) {
         // 动态计算lastId
-        calculateLastId(dto);
+        pageQueryUtils.calculateLastId(dto);
 
         // 分页查询
         List<PoemListVO> list = poemMapper.getAllPoems(dto);
 
         // 总数查询（带条件）
-        Long total = poemMapper.countAllPoems(dto.getName(), dto.getGradeId());
+        Long total = poemMapper.countAllPoems(dto);
 
         return new PageResult<>(total, list);
     }
@@ -85,18 +91,15 @@ public class PoemServiceImpl implements PoemService {
         return null;
     }
 
-    private void calculateLastId(PoemPageQueryDTO dto) {
-        if (dto.getPage() == 1) {
-            dto.setLastId(0L);
-            return;
-        }
-
-        // 动态查询上一页最后ID
-        Long offset = (long) (dto.getPage() - 1) * dto.getPageSize();
-        dto.setLastId(poemMapper.findOffsetId(
-                dto.getName(),
-                dto.getGradeId(),
-                offset
-        ));
+    /**
+     * 获取朝代列表
+     */
+    @Override
+    public List<Dynasty> getDynasties() {
+        List<Dynasty> dynasties = poemMapper.getDynasties();
+        dynasties.addFirst(new Dynasty(0L, "全部"));
+        return dynasties;
     }
+
+
 }

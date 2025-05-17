@@ -9,7 +9,7 @@
     <resultMap id="PoemResultMap" type="chatchatback.pojo.entity.Poem">
         <id property="id" column="id"/>
         <result property="name" column="name"/>
-        <result property="dynasty" column="dynasty"/>
+        <result property="dynastyId" column="dynasty_id"/>
         <result property="authorId" column="author_id"/>
         <result property="fullAncientContent" column="full_ancient_content"/>
         <result property="fullModernContent" column="full_modern_content"/>
@@ -29,14 +29,16 @@
         SELECT
         p.id,
         p.name,
-        p.dynasty,
+        p.dynasty_id,
         p.author_id,
         p.full_ancient_content,
         p.full_modern_content,
         p.links,
-        ap.name as author
+        ap.name as author,
+        dy.name as dynasty
         FROM poems p
         LEFT JOIN authors_poems ap on p.author_id = ap.id
+        LEFT JOIN dynasty dy on p.dynasty_id = dy.id
         INNER JOIN poem_textbook pt ON pt.poem_id = p.id
         where pt.grade_id = #{gradeId}
         <if test="name != null and name != ''">
@@ -49,7 +51,7 @@
         SELECT
             p.id,
             p.name,
-            p.dynasty,
+            p.dynasty_id,
             p.author_id,
             p.full_ancient_content,
             p.full_modern_content,
@@ -58,9 +60,11 @@
             p.background,
             p.people_appreciation,
             p.links,
-            ap.name as author
+            ap.name as author,
+            dy.name as dynasty
         FROM poems p
                  LEFT JOIN authors_poems ap on p.author_id = ap.id
+                 LEFT JOIN dynasty dy on p.dynasty_id = dy.id
         where p.id = #{id}
     </select>
 
@@ -68,13 +72,15 @@
         SELECT
             p.id,
             p.name,
-            p.dynasty,
+            p.dynasty_id,
+            dy.name as dynasty,
             p.author_id,
             ap.name AS author, -- 联表获取作者名
             p.full_ancient_content,
             p.full_modern_content
         FROM poems p
                  INNER JOIN authors_poems ap ON p.author_id = ap.id
+                 LEFT JOIN dynasty dy on p.dynasty_id = dy.id
         WHERE p.id >= #{lastId}
         <if test="name != null">
             AND p.name LIKE CONCAT('%', #{name}, '%')
@@ -108,14 +114,63 @@
         </foreach>
     </select>
 
+    <select id="searchByKeyword" resultType="chatchatback.pojo.entity.PoemListVO">
+        select
+            p.id,
+            p.name,
+            p.dynasty_id,
+            p.author_id,
+            p.full_ancient_content,
+            p.full_modern_content,
+            ap.name AS author,
+            dp.name as dynasty
+        FROM poems p
+                 LEFT JOIN authors_poems ap on p.author_id = ap.id
+                 LEFT JOIN dynasty dp on p.dynasty_id = dp.id
+        WHERE p.id >= #{lastId}
+        <if test="keyword != null and keyword != ''">
+            AND p.full_ancient_content LIKE CONCAT('%',#{keyword},'%')
+        </if>
+        <if test="dynastyId != null and dynastyId > 0">
+            AND p.dynasty_id = #{dynastyId}
+        </if>
+        order by p.id
+        LIMIT #{pageSize}
+    </select>
+
+    <select id="SearchCountByKeyword" resultType="chatchatback.pojo.vo.CountKeywordVO">
+        SELECT
+            tmp.dynasty_id as dynasty_id,
+            dy.name AS dynasty,
+            COUNT(dynasty_id) AS count
+        FROM (
+                 SELECT dynasty_id
+                 FROM poems
+                 <where>
+                     <if test="keyword != null and keyword != ''">
+                         AND full_ancient_content LIKE CONCAT('%', #{keyword}, '%')
+                     </if>
+                 </where>
+             ) AS tmp
+            LEFT JOIN dynasty dy on tmp.dynasty_id = dy.id
+        GROUP BY tmp.dynasty_id, dy.name
+        ORDER BY count DESC;
+    </select>
+
     <!-- 通用查询条件 -->
     <sql id="queryConditions">
         <if test="gradeId != null and gradeId != 0">
             INNER JOIN poem_textbook pt ON pt.poem_id = p.id AND pt.grade_id = #{gradeId}
         </if>
         <where>
-            <if test="name != null">
+            <if test="name != null and name != ''">
                 AND p.name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND p.full_ancient_content LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="dynastyId != null and dynastyId > 0">
+                AND p.dynasty_id = #{dynastyId}
             </if>
         </where>
     </sql>

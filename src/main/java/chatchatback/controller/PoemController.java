@@ -73,4 +73,13 @@ public class PoemController {
         List<PoemListVO> list = poemService.getPoemNameByIds(ids);
         return Result.success(list);
     }
+
+    /**
+     * 获取朝代列表
+     */
+    @GetMapping("/dynasties")
+    public Result getDynasties() {
+        log.info("获取朝代列表...");
+        return Result.success(poemService.getDynasties());
+    }
 }

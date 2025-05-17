@@ -2,9 +2,12 @@ package chatchatback.mapper;
 
 import chatchatback.pojo.dto.PoemPageQueryDTO;
 import chatchatback.pojo.dto.PoemPageQueryGradeDTO;
+import chatchatback.pojo.entity.Dynasty;
 import chatchatback.pojo.entity.Poem;
 import chatchatback.pojo.entity.PoemListVO;
+import chatchatback.pojo.vo.CountKeywordVO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
@@ -20,11 +23,21 @@ public interface PoemMapper {
     List<PoemListVO> getAllPoems(PoemPageQueryDTO poemPageQueryDTO);
 
     // 新增总数统计方法
-    Long countAllPoems(String name, Long gradeId);
+    Long countAllPoems(PoemPageQueryDTO poemPageQueryDTO);
 
     // 根据条件查找分页起始ID
-    Long findOffsetId(String name, Long gradeId, Long offset);
+    Long findOffsetId(PoemPageQueryDTO poemPageQueryDTO);
 
     // 根据ids获取诗词名
     List<PoemListVO> getPoemNameByIds(List<Long> ids);
+
+    // 根据关键词搜索
+    List<PoemListVO> searchByKeyword(PoemPageQueryDTO poemPageQueryDTO);
+
+    // 根据关键词搜索返回朝代对应的古诗文个数
+    List<CountKeywordVO> SearchCountByKeyword(PoemPageQueryDTO poemPageQueryDTO);
+
+    // 获取朝代列表
+    @Select("select dynasty.id, dynasty.name from dynasty order by dynasty.id")
+    List<Dynasty> getDynasties();
 }

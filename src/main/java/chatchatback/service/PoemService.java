@@ -3,6 +3,7 @@ package chatchatback.service;
 import chatchatback.pojo.dto.PageResult;
 import chatchatback.pojo.dto.PoemPageQueryDTO;
 import chatchatback.pojo.dto.PoemPageQueryGradeDTO;
+import chatchatback.pojo.entity.Dynasty;
 import chatchatback.pojo.entity.Grade;
 import chatchatback.pojo.entity.Poem;
 import chatchatback.pojo.entity.PoemListVO;
@@ -35,4 +36,9 @@ public interface PoemService {
      * 根据ids获取诗词名称
      */
     List<PoemListVO> getPoemNameByIds(List<Long> ids);
+
+    /**
+     * 获取朝代列表
+     */
+    List<Dynasty> getDynasties();
 }

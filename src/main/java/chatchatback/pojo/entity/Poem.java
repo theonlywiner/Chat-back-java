@@ -14,6 +14,7 @@ import java.util.List;
 public class Poem{
     private Long id;
     private String name;
+    private Long dynastyId;
     private String dynasty;
     private Long authorId;
     private String author;
