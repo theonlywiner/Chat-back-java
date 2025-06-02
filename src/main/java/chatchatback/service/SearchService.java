@@ -2,8 +2,8 @@ package chatchatback.service;
 
 import chatchatback.pojo.dto.PageResult;
 import chatchatback.pojo.dto.PoemPageQueryDTO;
-import chatchatback.pojo.entity.PoemListVO;
 import chatchatback.pojo.vo.CountKeywordVO;
+import chatchatback.pojo.vo.PoemListVO;
 
 import java.util.List;
 

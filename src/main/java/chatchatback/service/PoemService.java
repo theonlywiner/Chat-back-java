@@ -6,7 +6,9 @@ import chatchatback.pojo.dto.PoemPageQueryGradeDTO;
 import chatchatback.pojo.entity.Dynasty;
 import chatchatback.pojo.entity.Grade;
 import chatchatback.pojo.entity.Poem;
-import chatchatback.pojo.entity.PoemListVO;
+import chatchatback.pojo.vo.DailyPoemVO;
+import chatchatback.pojo.vo.PoemListVO;
+
 
 import java.util.List;
 
@@ -41,4 +43,9 @@ public interface PoemService {
      * 获取朝代列表
      */
     List<Dynasty> getDynasties();
+
+    /**
+     * 获取每日随机诗词
+     */
+    DailyPoemVO getDailyPoem();
 }

@@ -4,8 +4,8 @@ import chatchatback.pojo.dto.PoemPageQueryDTO;
 import chatchatback.pojo.dto.PoemPageQueryGradeDTO;
 import chatchatback.pojo.entity.Dynasty;
 import chatchatback.pojo.entity.Poem;
-import chatchatback.pojo.entity.PoemListVO;
 import chatchatback.pojo.vo.CountKeywordVO;
+import chatchatback.pojo.vo.PoemListVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
@@ -40,4 +40,7 @@ public interface PoemMapper {
     // 获取朝代列表
     @Select("select dynasty.id, dynasty.name from dynasty order by dynasty.id")
     List<Dynasty> getDynasties();
+
+    //随机获取一首诗
+    Poem getRandomPoem();
 }

@@ -105,7 +105,7 @@
         <include refid="queryConditions"/>
     </select>
 
-    <select id="getPoemNameByIds" resultType="chatchatback.pojo.entity.PoemListVO">
+    <select id="getPoemNameByIds" resultType="chatchatback.pojo.vo.PoemListVO">
         SELECT p.id, p.name
         FROM poems p
         WHERE p.id IN
@@ -114,7 +114,7 @@
         </foreach>
     </select>
 
-    <select id="searchByKeyword" resultType="chatchatback.pojo.entity.PoemListVO">
+    <select id="searchByKeyword" resultType="chatchatback.pojo.vo.PoemListVO">
         select
             p.id,
             p.name,
@@ -155,6 +155,21 @@
             LEFT JOIN dynasty dy on tmp.dynasty_id = dy.id
         GROUP BY tmp.dynasty_id, dy.name
         ORDER BY count DESC;
+    </select>
+    <select id="getRandomPoem" resultType="chatchatback.pojo.entity.Poem">
+        SELECT
+            p.id,
+            p.name,
+            p.dynasty_id,
+            p.author_id,
+            p.full_ancient_content,
+            p.full_modern_content,
+            ap.dynasty,
+            ap.name
+        FROM poems p
+            left join authors_poems ap on p.author_id = ap.id
+        ORDER BY RAND()
+        LIMIT 1
     </select>
 
     <!-- 通用查询条件 -->

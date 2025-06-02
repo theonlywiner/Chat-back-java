@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="chatchatback.mapper.QuestionsMapper">
+
+    <resultMap id="AIGenerateVOMap" type="chatchatback.pojo.vo.AIGenerateVO">
+        <id property="id" column="id"/>
+        <result property="word" column="word"/>
+        <collection property="choiceQuestionsList" ofType="chatchatback.pojo.entity.ChoiceQuestions">
+            <id property="id" column="cq_id"/>
+            <result property="content" column="cq_content"/>
+            <result property="options" column="cq_options" typeHandler="chatchatback.handler.JsonStringArrayTypeHandler"/>
+            <result property="answer" column="cq_answer"/>
+            <result property="analysis" column="cq_analysis"/>
+        </collection>
+        <collection property="blankQuestionsList" ofType="chatchatback.pojo.entity.BlankQuestions">
+            <id property="id" column="bq_id"/>
+            <result property="content" column="bq_content"/>
+            <result property="answer" column="bq_answer"/>
+            <result property="analysis" column="bq_analysis"/>
+        </collection>
+    </resultMap>
+
+    <!-- 插入用户题目生成记录表 -->
+    <insert id="insertUserQuestionSession" parameterType="chatchatback.pojo.entity.UserQuestionSession">
+        INSERT INTO user_question_sessions (user_id, session_id, word_id)
+        VALUES (#{userId}, #{sessionId}, #{wordId})
+    </insert>
+
+    <!-- 插入生成选择题表 -->
+    <insert id="insertGeneratedChoiceQuestion" parameterType="chatchatback.pojo.entity.GeneratedChoiceQuestion">
+        INSERT INTO generated_choice_questions (session_id, content, options, answer, analysis)
+        VALUES (#{sessionId}, #{content}, #{options}, #{answer}, #{analysis})
+    </insert>
+
+    <!-- 插入生成填空题表 -->
+    <insert id="insertGeneratedBlankQuestion" parameterType="chatchatback.pojo.entity.GeneratedBlankQuestion">
+        INSERT INTO generated_blank_questions (session_id, content, answer, analysis)
+        VALUES (#{sessionId}, #{content}, #{answer}, #{analysis})
+    </insert>
+    <select id="getQuestionsHistory" resultType="chatchatback.pojo.vo.QuestionsHistoryVO"
+            parameterType="java.lang.Integer">
+        SELECT
+            uqs.id AS id,
+            uqs.session_id AS sessionId,
+            user.username AS username,
+            uqs.id AS wordId,
+            wp.word_char AS word,
+            uqs.generated_at AS generatedAt
+        FROM user_question_sessions uqs
+                 JOIN words_poems wp ON uqs.word_id = wp.id
+                 JOIN user ON uqs.user_id = user.id
+        WHERE user.id = #{userId}
+        <if test="questionsPageQueryDTO.startTime != null and questionsPageQueryDTO.endTime != null">
+            AND uqs.generated_at BETWEEN #{questionsPageQueryDTO.startTime} AND #{questionsPageQueryDTO.endTime}
+        </if>
+        <if test="questionsPageQueryDTO.word != null and questionsPageQueryDTO.word != ''">
+            AND wp.word_char =  #{questionsPageQueryDTO.word}
+        </if>
+        order by uqs.generated_at DESC
+    </select>
+    <select id="getQuestionsBySessionId" resultMap="AIGenerateVOMap" parameterType="java.lang.String">
+        SELECT
+            uqs.id AS id,
+            wp.word_char AS word,
+            cq.id AS cq_id,
+            cq.content AS cq_content,
+            cq.options AS cq_options,
+            cq.answer AS cq_answer,
+            cq.analysis AS cq_analysis,
+            bq.id AS bq_id,
+            bq.content AS bq_content,
+            bq.answer AS bq_answer,
+            bq.analysis AS bq_analysis
+        FROM user_question_sessions uqs
+        LEFT JOIN words_poems wp ON uqs.word_id = wp.id
+        LEFT JOIN generated_choice_questions cq ON uqs.session_id = cq.session_id
+        LEFT JOIN generated_blank_questions bq ON uqs.session_id = bq.session_id
+        WHERE uqs.session_id = #{sessionId}
+    </select>
+</mapper>

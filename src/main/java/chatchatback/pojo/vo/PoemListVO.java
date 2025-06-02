@@ -1,4 +1,4 @@
-package chatchatback.pojo.entity;
+package chatchatback.pojo.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

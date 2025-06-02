@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="chatchatback.mapper.WordMapper">
+
+    <select id="searchWord" resultType="chatchatback.pojo.entity.WordsPoems">
+        SELECT DISTINCT
+            id, word_char as word, word_char, phoneticize, priority
+        FROM words_poems
+            LEFT JOIN word_phonetic_initial wpi on wpi.word_id = words_poems.id
+        <where>
+            <if test="word != null and word != ''">
+                words_poems.word_char = #{word}
+            </if>
+            <if test="initial != null and initial != ''">
+                AND wpi.initial = #{initial}
+            </if>
+            <if test="status != null">
+                AND words_poems.priority = #{status}
+            </if>
+        </where>
+        ORDER BY words_poems.priority ASC, words_poems.id ASC
+    </select>
+
+    <select id="searchMeanings" resultType="chatchatback.pojo.entity.MeaningsPoems">
+        SELECT
+            id, word_id, meaning, type, subtype
+        FROM meanings_poems
+        <where>
+            <if test="id != null and id != 0">
+                word_id = #{id}
+            </if>
+        </where>
+    </select>
+
+    <select id="searchBatchExamples" resultType="chatchatback.pojo.entity.ExamplesPoems">
+        SELECT
+            ep.id, meaning_id, example, source, ep.poem_id, g.name AS grade
+        FROM examples_poems ep
+            LEFT JOIN poem_textbook pt ON pt.poem_id = ep.id
+            LEFT JOIN grades g ON pt.grade_id = g.id
+        <where>
+            <if test="ids != null ">
+                meaning_id in
+                <foreach collection="ids" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </select>
+</mapper>

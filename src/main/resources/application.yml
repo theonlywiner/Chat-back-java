@@ -1,17 +1,21 @@
 spring:
   application:
-    name: tlias-web-management
+    name: chatchat
+
+  # 配置环境
+  profiles:
+    active: local
 
   datasource:
     #配置数据库连接信息
     #数据库访问的url地址
-    url: jdbc:mysql://localhost:3306/chatchat
+    url: jdbc:mysql://${chatchat.db.host}:3306/chatchat
     #数据库驱动类类名
     driver-class-name: com.mysql.jdbc.Driver
     #访问数据库-用户名
     username: root
     #访问数据库-密码
-    password: 123456
+    password: ${chatchat.db.pw}
   servlet:
     multipart:
       #最大单个文件大小
@@ -23,9 +27,9 @@ spring:
     redis:
       # 超时配置
       timeout: 5000ms
-      host: localhost
+      host: ${chatchat.redis.host}
       port: 6379
-      password: 123456
+      password: ${chatchat.redis.pw}
       database: 1
 
   cache:
@@ -42,6 +46,11 @@ mybatis:
 #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     #开启驼峰命名映射开关
     map-underscore-to-camel-case: true
+  type-handlers-package: chatchatback.handler
+
+mybatis-plus:
+  configuration:
+    default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
 
 #配置事务管理日志级别
 logging:
@@ -56,7 +65,7 @@ chatchat:
       #管理端配置
       # 设置jwt签名加密时使用的秘钥
       admin-secret-key: zisuChatChatXinTaiBengDiaoLeKuaiLaiBangBangWo
-      # 设置jwt过期时间
-      admin-ttl: 7200000
+      # 设置jwt过期时间(6h)
+      admin-ttl: 21600000
       # 设置前端传递过来的令牌名称
       admin-token-name: token

@@ -6,7 +6,8 @@ import chatchatback.pojo.dto.PoemPageQueryGradeDTO;
 import chatchatback.pojo.dto.Result;
 import chatchatback.pojo.entity.Grade;
 import chatchatback.pojo.entity.Poem;
-import chatchatback.pojo.entity.PoemListVO;
+import chatchatback.pojo.vo.DailyPoemVO;
+import chatchatback.pojo.vo.PoemListVO;
 import chatchatback.service.PoemService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,5 +82,15 @@ public class PoemController {
     public Result getDynasties() {
         log.info("获取朝代列表...");
         return Result.success(poemService.getDynasties());
+    }
+
+    /**
+     * 获取每日随机诗词
+     */
+    @GetMapping("/poem/daily")
+    public Result getDailyPoem() {
+        log.info("获取每日随机诗词...");
+        DailyPoemVO poem = poemService.getDailyPoem();
+        return Result.success(poem);
     }
 }
