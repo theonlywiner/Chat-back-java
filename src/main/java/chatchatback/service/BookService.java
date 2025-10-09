@@ -2,6 +2,7 @@ package chatchatback.service;
 
 import chatchatback.pojo.dto.SearchQueryParamDTO;
 import chatchatback.pojo.entity.ClassicPoemInfo;
+import chatchatback.pojo.entity.Paragraphs;
 import chatchatback.pojo.vo.NavTreeDataVO;
 import chatchatback.pojo.dto.PageResult;
 import jakarta.validation.constraints.Min;
@@ -22,5 +23,11 @@ public interface BookService {
     //4.搜素列表
     PageResult<ClassicPoemInfo> page(SearchQueryParamDTO searchQueryParam);
 
+    //5.标题模糊搜索
     PageResult<ClassicPoemInfo> searchTitle(SearchQueryParamDTO param);
+
+    //6.根据es快速匹配古文内容（paragraphs）
+    public List<Paragraphs> searchAncientTextByKeyword(String keyword);
+
+    List<Paragraphs> searchAncientTextByKeywordMysql(String keyword);
 }

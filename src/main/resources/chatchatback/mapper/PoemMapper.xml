@@ -162,6 +162,7 @@
             p.name,
             p.dynasty_id,
             p.author_id,
+            p.background,
             p.full_ancient_content,
             p.full_modern_content,
             ap.dynasty,

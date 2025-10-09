@@ -114,11 +114,3 @@
         </where>
     </select>
 </mapper>
-
-<!--<where>-->
-<!--<if test="title != null and title != ''">-->
-<!--    (c.name LIKE CONCAT('%', #{title}, '%')-->
-<!--    OR b.name LIKE CONCAT('%', #{title}, '%')-->
-<!--    OR bs.name LIKE CONCAT('%', #{title}, '%'))-->
-<!--</if>-->
-<!--</where>-->

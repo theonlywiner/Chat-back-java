@@ -8,6 +8,7 @@ import java.util.List;
 public class DailyPoemVO {
     private String title;
     private String author;
+    private String background;
     private List<String> content;
     private String dynasty;
 }

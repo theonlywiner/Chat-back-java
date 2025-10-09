@@ -1,15 +1,19 @@
 package chatchatback.service.impl;
 
+import chatchatback.constant.Constant;
 import chatchatback.constant.MessageConstant;
 import chatchatback.exception.AccountNotFoundException;
 import chatchatback.exception.PasswordErrorException;
 import chatchatback.mapper.UserMapper;
 import chatchatback.pojo.dto.LoginInfoDTO;
 import chatchatback.service.UserService;
+import chatchatback.utils.CurrentHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Currency;
 
 @Slf4j
 @Service
@@ -30,7 +34,15 @@ public class UserServiceImpl implements UserService {
         }
         // 使用 BCrypt 加密原始密码
         String encodedPassword = passwordEncoder.encode(loginInfoDTO.getPassword());
-        userMapper.addUser(loginInfoDTO.getUsername(), encodedPassword);
+
+        //如果用户没有选择年级，默认为18-全年级
+        if (loginInfoDTO.getGradeId() == null) {
+            loginInfoDTO.setGradeId(18);
+        }else if (loginInfoDTO.getGradeId() > Constant.MaxGradeId || loginInfoDTO.getGradeId() <= 0) {
+            throw new PasswordErrorException(MessageConstant.GRADE_ERROR);
+        }
+
+        userMapper.addUser(loginInfoDTO.getUsername(), encodedPassword, loginInfoDTO.getGradeId());
     }
 
     // 登录接口
@@ -50,5 +62,17 @@ public class UserServiceImpl implements UserService {
         }
 
         return user;
+    }
+
+    // 修改年级
+    @Override
+    public void updateGrade(LoginInfoDTO loginInfoDTO) {
+        int id = CurrentHolder.getCurrentId();
+        int gradeId = loginInfoDTO.getGradeId();
+        if (gradeId > Constant.MaxGradeId || gradeId <= 0) {
+            throw new PasswordErrorException(MessageConstant.GRADE_ERROR);
+        }
+
+        userMapper.updateGrade(id, gradeId);
     }
 }

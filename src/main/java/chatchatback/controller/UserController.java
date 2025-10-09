@@ -11,9 +11,7 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +23,7 @@ import java.util.Map;
 @Validated
 @Slf4j
 @RestController
+@RequestMapping("/users")
 public class UserController {
 
     @Autowired
@@ -34,7 +33,7 @@ public class UserController {
     private JwtProperties jwtProperties;
 
     // 登录接口
-    @PostMapping("/users/login")
+    @PostMapping("/login")
     public Result login(@RequestBody LoginInfoDTO loginInfoDTO) {
         log.info("登录接口,参数:{}", loginInfoDTO);
 
@@ -60,7 +59,7 @@ public class UserController {
     }
 
     // 注册接口 @Valid触发验证
-    @PostMapping("/users/register")
+    @PostMapping("/register")
     public Result register(@Valid @RequestBody LoginInfoDTO loginInfoDTO) {
         log.info("注册信息 : {}", loginInfoDTO);
 
@@ -68,4 +67,15 @@ public class UserController {
 
         return Result.success("恭喜你注册成功~");
     }
+
+    // 修改年级
+    @PutMapping("/grade")
+    public Result updateGrade(@RequestBody LoginInfoDTO loginInfoDTO) {
+        log.info("修改年级信息 : {}", loginInfoDTO);
+
+        userService.updateGrade(loginInfoDTO);
+
+        return Result.success("修改年级成功~");
+    }
+
 }

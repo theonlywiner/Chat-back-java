@@ -8,4 +8,6 @@ public interface UserService {
     void register(LoginInfoDTO loginInfoDTO);
 
     LoginInfoDTO login(LoginInfoDTO loginInfoDTO);
+
+    void updateGrade(LoginInfoDTO loginInfoDTO);
 }

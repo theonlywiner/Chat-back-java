@@ -24,6 +24,10 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(tokenInterceptor) // 拦截器
                 .addPathPatterns("/ai/**") // 拦截所有请求   如果是/* 只能拦截一级路由，如/emps/{id}就不行
+                .addPathPatterns("/sentence-breaking/**")
+                .addPathPatterns("/users/grade")   // UserController用户修改年级字段
+                .addPathPatterns("/poemsByGrade")  // PoemController
+                .addPathPatterns("/dify/**") //DifyController
                 .excludePathPatterns("/login"); // 放行登录接口
     }
 

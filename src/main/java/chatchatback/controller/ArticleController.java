@@ -2,6 +2,7 @@ package chatchatback.controller;
 
 import chatchatback.pojo.dto.*;
 import chatchatback.pojo.entity.ClassicPoemInfo;
+import chatchatback.pojo.entity.Paragraphs;
 import chatchatback.pojo.vo.NavTreeDataVO;
 import chatchatback.service.BookService;
 import jakarta.validation.constraints.Min;
@@ -10,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
 import java.util.HashMap;
 import java.util.List;
@@ -75,5 +78,22 @@ public class ArticleController {
             log.error("查询失败：", e);
             return Result.error("系统错误：" + e.getMessage());
         }
+    }
+
+    /*TODO */
+    /**
+     *  6.根据es快速匹配古文内容（paragraphs）
+     * */
+    @GetMapping("/search/es/paragraph")
+    public Result searchParagraphByAncientText(String keyword) {
+        return Result.success(bookService.searchAncientTextByKeyword(keyword));
+    }
+
+    /**
+     * 7. 根据mysql模糊匹配古文内容（paragraphs），只比较前113588条，返回前5条
+     */
+    @GetMapping("/search/mysql/paragraph")
+    public Result searchParagraphByAncientTextMysql(String keyword) {
+        return Result.success(bookService.searchAncientTextByKeywordMysql(keyword));
     }
 }

@@ -41,6 +41,12 @@ public interface PoemMapper {
     @Select("select dynasty.id, dynasty.name from dynasty order by dynasty.id")
     List<Dynasty> getDynasties();
 
+    @Select("SELECT id FROM poems ORDER BY RAND() LIMIT 1")
+    Long selectRandomPoemId();
+
     //随机获取一首诗
-    Poem getRandomPoem();
+    @Select("SELECT p.*, ap.dynasty as dynasty, ap.name as author " +
+            "FROM poems p LEFT JOIN authors_poems ap " +
+            "ON p.author_id = ap.id WHERE p.id = #{id}")
+    Poem selectPoemDetailsById(Long id);
 }

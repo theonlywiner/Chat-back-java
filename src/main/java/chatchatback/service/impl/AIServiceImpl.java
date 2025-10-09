@@ -1,9 +1,12 @@
 package chatchatback.service.impl;
 
 import chatchatback.mapper.QuestionsMapper;
+import chatchatback.mapper.SentenceMapper;
 import chatchatback.pojo.dto.AIGenerateDTO;
+import chatchatback.pojo.dto.SegmentationTechniquesDTO;
 import chatchatback.pojo.entity.*;
 import chatchatback.pojo.vo.AIGenerateVO;
+import chatchatback.pojo.vo.SentenceQuestionVO;
 import chatchatback.service.AIService;
 import chatchatback.utils.CurrentHolder;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 
-import static chatchatback.constant.AIServiceConstant.BLANK_QUESTIONS_URL;
-import static chatchatback.constant.AIServiceConstant.CHOICE_QUESTIONS_URL;
+import static chatchatback.constant.ServiceConstant.*;
 
 
 @Slf4j
@@ -29,6 +31,7 @@ import static chatchatback.constant.AIServiceConstant.CHOICE_QUESTIONS_URL;
 @RequiredArgsConstructor
 public class AIServiceImpl implements AIService {
     private final QuestionsMapper questionsMapper;
+    private final SentenceMapper  sentenceMapper;
 
     // 可复用的RestTemplate和ObjectMapper
     private final RestTemplate restTemplate = new RestTemplate();
@@ -36,7 +39,7 @@ public class AIServiceImpl implements AIService {
 
     //ai生成题目，返回sessionId
     @Override
-    public String generateQuestions(AIGenerateDTO aiGenerateDTO) {
+    public String generateWordQuestions(AIGenerateDTO aiGenerateDTO) {
         //1.三个字段获取
         Integer userId = CurrentHolder.getCurrentId();
         String sessionId = "session_" + userId + System.currentTimeMillis();
@@ -87,7 +90,7 @@ public class AIServiceImpl implements AIService {
             throw new RuntimeException("生成题目失败");
         }
 
-        log.info("生成题目成功：{}", aiGenerateVO);
+        log.info("生成常用词题目成功：{}", aiGenerateVO);
         return sessionId;
     }
 
@@ -128,5 +131,72 @@ public class AIServiceImpl implements AIService {
             gbq.setAnalysis(bq.getAnalysis());
             questionsMapper.insertGeneratedBlankQuestion(gbq);
         }
+    }
+
+    @Override
+    public SentenceQuestionVO generateSentenceQuestions(SegmentationTechniquesDTO segmentationTechniquesDTO) {
+        Long id = segmentationTechniquesDTO.getId();
+        String skill = segmentationTechniquesDTO.getName();
+        String description = segmentationTechniquesDTO.getDescription();
+
+        //设置返回类型
+        SentenceQuestionVO sentenceQuestionVO = SentenceQuestionVO.builder()
+                .id(id)
+                .name(skill)
+                .description(description)
+                .difficulty(segmentationTechniquesDTO.getDifficulty())
+                .build();
+
+        try {
+            //1.调用接口拿到数据
+            String SentenceQuestions = SENTENCE_QUESTIONS_URL;
+            // 远程调用句子断句题接口
+            String urlSentence = SentenceQuestions;
+            // 设置请求头
+            HttpHeaders headers = new HttpHeaders();
+
+            // 添加请求头
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            // 构造HttpEntity
+            String jsonBody = objectMapper.writeValueAsString(segmentationTechniquesDTO);
+            HttpEntity<String> request = new HttpEntity<>(jsonBody, headers);
+
+            // 调用句子断句题接口
+            String sentenceResult = restTemplate.postForObject(urlSentence, request, String.class);
+
+            // 解析返回结果
+            Map<String, Object> sentenceMap = objectMapper.readValue(sentenceResult, Map.class);
+            List<?> exerciseQuestionsRaw = (List<?>) sentenceMap.get("data");
+            List<ExerciseQuestions> exerciseQuestionsList = new java.util.ArrayList<>();
+            for (Object obj : exerciseQuestionsRaw) {
+                Map<String, Object> map = (Map<String, Object>) obj;
+                Object diffObj = map.get("difficulty");
+                if (diffObj instanceof Number) {
+                    int diffVal = ((Number) diffObj).intValue();
+                    // 1-初级, 2-中级, 3-高级
+                    chatchatback.pojo.enums.DifficultyStatus status = null;
+                    if (diffVal == 1) status = chatchatback.pojo.enums.DifficultyStatus.EASY;
+                    else if (diffVal == 2) status = chatchatback.pojo.enums.DifficultyStatus.MEDIUM;
+                    else if (diffVal == 3) status = chatchatback.pojo.enums.DifficultyStatus.HARD;
+                    map.put("difficulty", status);
+                }
+                ExerciseQuestions eq = objectMapper.convertValue(map, ExerciseQuestions.class);
+                exerciseQuestionsList.add(eq);
+            }
+            sentenceQuestionVO.setExerciseQuestionsList(exerciseQuestionsList);
+            saveGenerateSentenceQuestions(sentenceQuestionVO);
+        } catch (Exception e) {
+            log.error("生成题目失败：{}", e.getMessage());
+            throw new RuntimeException("生成题目失败");
+        }
+        log.info("生成断句题目成功：{}", sentenceQuestionVO);
+        return sentenceQuestionVO;
+    }
+
+    public void saveGenerateSentenceQuestions(SentenceQuestionVO sentenceQuestionVO) {
+        //批量插入数组 的方法名 体现批量的意思
+        List<ExerciseQuestions> exerciseQuestionsList = sentenceQuestionVO.getExerciseQuestionsList();
+        sentenceMapper.insertBachAIQuestions(exerciseQuestionsList, sentenceQuestionVO.getId());
     }
 }

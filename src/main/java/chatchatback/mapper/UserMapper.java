@@ -11,6 +11,9 @@ public interface UserMapper {
     @Select("select * from user where username = #{username}")
     LoginInfoDTO getByUsername(String username);
 
-    @Insert("insert into user(username,password) values(#{username},#{encodedPassword})")
-    void addUser(String username, String encodedPassword);
+    @Insert("insert into user(username, password, grade_id) values(#{username},#{encodedPassword},#{gradeId})")
+    void addUser(String username, String encodedPassword, int gradeId);
+
+    @Insert("update user set grade_id = #{gradeId} where id = #{id}")
+    void updateGrade(int id, int gradeId);
 }

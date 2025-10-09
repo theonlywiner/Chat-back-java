@@ -3,14 +3,24 @@ package chatchatback.service.impl;
 import chatchatback.mapper.BookMapper;
 import chatchatback.pojo.dto.*;
 import chatchatback.pojo.entity.ClassicPoemInfo;
+import chatchatback.pojo.entity.Paragraphs;
 import chatchatback.pojo.vo.NavTreeDataVO;
 import chatchatback.service.BookService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.javassist.NotFoundException;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -21,6 +31,9 @@ public class BookServiceImpl implements BookService {
 
     @Autowired
     private BookMapper bookMapper;
+
+    @Autowired
+    private RestHighLevelClient esClient;
 
     /**
      *  1.首页书籍信息获取
@@ -130,4 +143,39 @@ public class BookServiceImpl implements BookService {
         return new PageResult<>((long) list.size(), list);
     }
 
+    /**
+     *  6.根据es快速匹配古文内容（paragraphs）
+     * */
+    public List<Paragraphs> searchAncientTextByKeyword(String keyword) {
+        SearchRequest searchRequest = new SearchRequest("paragraphs");
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        sourceBuilder.query(QueryBuilders.matchQuery("ancientText", keyword).analyzer("ik_smart"));
+        sourceBuilder.size(5); // 只返回前5个
+        searchRequest.source(sourceBuilder);
+
+        List<Paragraphs> resultList = new ArrayList<>();
+        try {
+            SearchResponse response = esClient.search(searchRequest, RequestOptions.DEFAULT);
+            for (SearchHit hit : response.getHits().getHits()) {
+                Map<String, Object> map = hit.getSourceAsMap();
+                Paragraphs p = new Paragraphs();
+                p.setId(Long.valueOf(map.get("id").toString()));
+                p.setChapterId(map.get("chapterId") == null ? null : Long.valueOf(map.get("chapterId").toString()));
+                p.setAncientText((String) map.get("ancientText"));
+                p.setModernText((String) map.get("modernText"));
+                resultList.add(p);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("ES搜索失败: " + e.getMessage());
+        }
+        return resultList;
+    }
+
+    
+    @Override
+    public List<Paragraphs> searchAncientTextByKeywordMysql(String keyword) {
+        // 只查前113588条，模糊匹配ancient_text字段，返回前5条
+        List<Paragraphs> allMatched = bookMapper.searchAncientTextByKeywordMysqlAll(keyword);
+        return allMatched.stream().limit(5).toList();
+    }
 }

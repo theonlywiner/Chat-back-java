@@ -22,6 +22,7 @@ public enum PriorityStatus {
         this.priority = priority;
     }
 
+    // 根据输入重要性字符，查找获取枚举
     public static PriorityStatus fromPriority(String priority) {
         for (PriorityStatus status : values()) {
             if (status.priority.equals(priority)) {

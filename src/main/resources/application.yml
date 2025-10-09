@@ -48,6 +48,7 @@ mybatis:
     map-underscore-to-camel-case: true
   type-handlers-package: chatchatback.handler
 
+#mybatis-plus的enum类型处理
 mybatis-plus:
   configuration:
     default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
@@ -69,3 +70,16 @@ chatchat:
       admin-ttl: 21600000
       # 设置前端传递过来的令牌名称
       admin-token-name: token
+    # elasticsearch
+    es:
+      host: ${chatchat.es.host} # dev环境
+    dify:
+      api:
+        base-url: http://121.40.171.211/v1
+        api-key: app-HF0OsTrV7RAcgfk58YcYvFUN
+server:
+  port: 8848
+  ssl:
+    key-store: classpath:zhixunshiyun.yezhiqiu.cn.pfx
+    key-store-password: jv3g4g93
+    key-store-type: PKCS12

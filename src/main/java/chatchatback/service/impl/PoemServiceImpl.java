@@ -11,10 +11,12 @@ import chatchatback.pojo.entity.Poem;
 import chatchatback.pojo.vo.DailyPoemVO;
 import chatchatback.pojo.vo.PoemListVO;
 import chatchatback.service.PoemService;
+import chatchatback.utils.CurrentHolder;
 import chatchatback.utils.PageQueryUtils;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,8 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static chatchatback.constant.Constant.MaxGradeId;
 
 @Slf4j
 @Service
@@ -56,12 +60,27 @@ public class PoemServiceImpl implements PoemService {
      */
     @Override
     public PageResult<PoemListVO> getPoemsByGradeId(PoemPageQueryGradeDTO poemPageQueryGradeDTO) {
-        //设置分页信息
-        PageHelper.startPage(poemPageQueryGradeDTO.getPage(), poemPageQueryGradeDTO.getPageSize());
+        // 获取年级信息
+        int userId = CurrentHolder.getCurrentId();
+        Long gradeId = gradeMapper.getGradeIdById((long) userId);
+        poemPageQueryGradeDTO.setGradeId(gradeId);
 
-        //执行查询
-        Page<PoemListVO> poemList = (Page<PoemListVO>)poemMapper.getPoemsByGradeId(poemPageQueryGradeDTO);
-        return new PageResult<>(poemList.getTotal(), poemList.getResult());
+        if (gradeId == MaxGradeId) {
+            PoemPageQueryDTO poemPageQueryDTO = new PoemPageQueryDTO();
+            BeanUtils.copyProperties(poemPageQueryGradeDTO, poemPageQueryDTO);
+            poemPageQueryDTO.setGradeId(0L);
+            PageResult<PoemListVO> allPoems = getAllPoems(poemPageQueryDTO);
+//            System.out.println(allPoems);
+            return allPoems;
+        }else {
+            //设置分页信息
+            PageHelper.startPage(poemPageQueryGradeDTO.getPage(), poemPageQueryGradeDTO.getPageSize());
+
+            //执行查询
+            Page<PoemListVO> poemList = (Page<PoemListVO>)poemMapper.getPoemsByGradeId(poemPageQueryGradeDTO);
+            log.info("获取诗词列表,{}",poemList.getResult());
+            return new PageResult<>(poemList.getTotal(), poemList.getResult());
+        }
     }
 
     /**
@@ -85,7 +104,7 @@ public class PoemServiceImpl implements PoemService {
 
         // 总数查询（带条件）
         Long total = poemMapper.countAllPoems(dto);
-
+        System.out.println(total);
         return new PageResult<>(total, list);
     }
 
@@ -115,25 +134,9 @@ public class PoemServiceImpl implements PoemService {
      */
     @Override
     public DailyPoemVO getDailyPoem() {
-        // 1. 尝试从Redis获取今日诗词ID
-        String dailyPoemId = stringRedisTemplate.opsForValue().get(DAILY_POEM_KEY);
-
         Poem poem = null;
-        if (dailyPoemId != null) {
-            // 2. 如果Redis中存在，直接返回对应诗词
-            poem = poemMapper.getPoemById(Long.valueOf(dailyPoemId));
-        } else {
-            // 3. 如果Redis中不存在，随机获取一首诗
-            poem = poemMapper.getRandomPoem();
-            if (poem != null) {
-                // 4. 将诗词ID存入Redis，设置24小时过期
-                stringRedisTemplate.opsForValue().set(DAILY_POEM_KEY,
-                        String.valueOf(poem.getId()),
-                        DAILY_POEM_TTL,
-                        TimeUnit.SECONDS);
-            }
-        }
-
+        Long randomId = poemMapper.selectRandomPoemId();
+        poem = poemMapper.selectPoemDetailsById(randomId);
         if (poem == null) {
             return null;
         }
@@ -143,6 +146,7 @@ public class PoemServiceImpl implements PoemService {
         dailyPoemVO.setTitle(poem.getName());
         dailyPoemVO.setAuthor(poem.getAuthor());
         dailyPoemVO.setDynasty(poem.getDynasty());
+        dailyPoemVO.setBackground(poem.getBackground());
 
         // 将全文内容按行分割成列表
         if (poem.getFullAncientContent() != null) {

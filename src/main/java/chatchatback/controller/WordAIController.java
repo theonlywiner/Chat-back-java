@@ -20,7 +20,7 @@ import static java.lang.Thread.sleep;
 @RestController
 @RequestMapping ("/ai")
 @RequiredArgsConstructor
-public class AIController {
+public class WordAIController {
 
     private final AIService aiService;
     private final QuestionsService questionsService;
@@ -31,7 +31,7 @@ public class AIController {
     @PostMapping("/generate-questions")
     public Result generateQuestions(@RequestBody AIGenerateDTO aiGenerateDTO) {
         log .info("调用ai接口生成问题....,aiGenerateDTO:{}", aiGenerateDTO);
-        Object  result = aiService.generateQuestions(aiGenerateDTO);
+        Object  result = aiService.generateWordQuestions(aiGenerateDTO);
         return Result.success(result);
     }
 

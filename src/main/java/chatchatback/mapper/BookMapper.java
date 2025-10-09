@@ -3,6 +3,7 @@ package chatchatback.mapper;
 import chatchatback.pojo.dto.SearchQueryParamDTO;
 import chatchatback.pojo.entity.ClassicPoemInfo;
 import chatchatback.pojo.dto.ContentPair;
+import chatchatback.pojo.entity.Paragraphs;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
@@ -41,4 +42,11 @@ public interface BookMapper {
     //查询总数
     @Select("select count(*) from chapters")
     Long countTotal();
+
+    // 返回paragraphs表的数据
+    @Select("select * from paragraphs")
+    List<Paragraphs> selectALL();
+
+    @Select("SELECT * FROM paragraphs WHERE ancient_text LIKE CONCAT('%', #{keyword}, '%') limit 5")
+    List<Paragraphs> searchAncientTextByKeywordMysqlAll(String keyword);
 }

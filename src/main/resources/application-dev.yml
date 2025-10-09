@@ -6,3 +6,6 @@ chatchat:
   redis:
     host: redis
     pw: 123456
+    
+  es:
+    host: es
