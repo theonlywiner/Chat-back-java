@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="chatchatback.mapper.UserRecitationRecordMapper">
+
+    <insert id="insertRecord" parameterType="chatchatback.pojo.entity.UserRecitationRecord" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_recitation_records
+        (user_id, poem_id, overall_score, content_completeness, structural_correctness, key_imagery_preservation, praise_feedback, major_errors, suggestions, created_at,  student_text)
+        VALUES
+        (#{userId}, #{poemId}, #{overallScore}, #{contentCompleteness}, #{structuralCorrectness}, #{keyImageryPreservation}, #{praiseFeedback}, #{majorErrors, jdbcType=OTHER, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler}, #{suggestions, jdbcType=OTHER, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler}, NOW(), #{studentText})
+    </insert>
+
+    <resultMap id="UserRecitationRecordMap" type="chatchatback.pojo.entity.UserRecitationRecord">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="poemId" column="poem_id"/>
+        <result property="studentText" column="student_text"/>
+        <result property="overallScore" column="overall_score"/>
+        <result property="contentCompleteness" column="content_completeness"/>
+        <result property="structuralCorrectness" column="structural_correctness"/>
+        <result property="keyImageryPreservation" column="key_imagery_preservation"/>
+        <result property="praiseFeedback" column="praise_feedback"/>
+        <result property="majorErrors" column="major_errors" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result property="suggestions" column="suggestions" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="selectByCurrentUser" resultMap="UserRecitationRecordMap">
+        SELECT id, user_id, poem_id, student_text, overall_score, content_completeness, structural_correctness,
+               key_imagery_preservation, praise_feedback, major_errors, suggestions, created_at
+        FROM user_recitation_records
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+
+</mapper>

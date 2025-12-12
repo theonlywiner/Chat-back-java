@@ -32,18 +32,18 @@ public class TokenInterceptor implements HandlerInterceptor {
             return true;
         }
 
-//        Enumeration<String> headerNames = request.getHeaderNames();
-//        while (headerNames.hasMoreElements()) {
-//            String headerName = headerNames.nextElement();
-//            log.info("header: {} = {}", headerName, request.getHeader(headerName));
-//        }
-
-        //3.拿到token
+        //3.拿到token -  优先从请求头获取，如果请求头没有则从URL参数获取
         String token = request.getHeader("token");
         log.info("拿到token：{}",token);
 
+        // 3. 如果请求头没有token，尝试从URL参数获取（用于SSE连接）
+        if (token == null || token.isEmpty()) {
+            token = request.getParameter("token");
+            log.info("从URL参数拿到token：{}", token);
+        }
+
         //4.判断token是否为空，为空，返回401
-        if (token == null) {
+        if (token == null || token.isEmpty()) {
             log.info("请求头中没有token");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=UTF-8");
@@ -56,7 +56,10 @@ public class TokenInterceptor implements HandlerInterceptor {
             Claims claims = JwtUtils.parseJwt(JwtProperties.getAdminSecretKey(), token);
             Integer employeeId = (Integer) claims.get(JwtClaimsConstant.USER_ID);
             log.info("当前登录用户userid为：{}", employeeId);
+            // 将当前登录用户id保存到ThreadLocal中
             CurrentHolder.setCurrentId(employeeId);
+            // 设置到请求属性中，供Controller使用
+            request.setAttribute("userId", employeeId);
         } catch (Exception e) {
             log.info("解析令牌失败");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

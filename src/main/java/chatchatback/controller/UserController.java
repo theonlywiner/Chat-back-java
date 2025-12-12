@@ -3,6 +3,7 @@ package chatchatback.controller;
 import chatchatback.constant.JwtClaimsConstant;
 import chatchatback.pojo.dto.LoginInfoDTO;
 import chatchatback.pojo.dto.Result;
+import chatchatback.pojo.entity.Grade;
 import chatchatback.pojo.vo.UserLoginVO;
 import chatchatback.properties.JwtProperties;
 import chatchatback.service.UserService;
@@ -53,6 +54,8 @@ public class UserController {
                 .userName(loginInfoDTOGet.getUsername())
                 .name(loginInfoDTOGet.getName())
                 .token(token)
+                .gradeId(loginInfoDTOGet.getGradeId())
+                .gradeName(loginInfoDTOGet.getGradeName())
                 .build();
 
         return Result.success(userLoginVO);
@@ -73,9 +76,9 @@ public class UserController {
     public Result updateGrade(@RequestBody LoginInfoDTO loginInfoDTO) {
         log.info("修改年级信息 : {}", loginInfoDTO);
 
-        userService.updateGrade(loginInfoDTO);
+        Grade grade = userService.updateGrade(loginInfoDTO);
 
-        return Result.success("修改年级成功~");
+        return Result.success(grade);
     }
 
 }

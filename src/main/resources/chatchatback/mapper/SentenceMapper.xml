@@ -3,7 +3,7 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="chatchatback.mapper.SentenceMapper">
-    <insert id="insertBachAIQuestions" parameterType="java.util.List">
+    <insert id="insertBachAIQuestions" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="exerciseQuestionsList.id">
         INSERT INTO ai_exercise_questions (source_text, content, answer, analysis, positions, difficulty, technique_id)
         VALUES
         <foreach collection="exerciseQuestionsList" item="item" separator=",">

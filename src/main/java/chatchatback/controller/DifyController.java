@@ -3,18 +3,26 @@ package chatchatback.controller;
 import chatchatback.mapper.PoemMapper;
 import chatchatback.pojo.dto.Result;
 import chatchatback.pojo.entity.Poem;
+import chatchatback.pojo.entity.UserRecitationRecord;
 import chatchatback.pojo.vo.DifyEvaluateResultVO;
 import chatchatback.service.DifyService;
 import com.fasterxml.jackson.databind.JsonNode;
-import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Dify背诵模块
+ */
 
 @RestController
 @RequestMapping("/dify")
@@ -24,6 +32,20 @@ public class DifyController {
 
     private final DifyService difyService;
     private final PoemMapper poemMapper;
+
+    /**
+     * 获取语音记录
+     */
+    @GetMapping("/records")
+    public Result getRecords() {
+        try {
+            List<UserRecitationRecord> records = difyService.getMyRecords();
+            return Result.success(records);
+        } catch (Exception e) {
+            log.error("查询失败：", e);
+            return Result.error("系统错误：" + e.getMessage());
+        }
+    }
 
     /**
      * 上传视频并跑评分工作流，返回 Dify 响应
@@ -42,7 +64,7 @@ public class DifyController {
             }
 
             // 2. 发送对话消息进行评分
-            JsonNode chatResp = difyService.runWorkflow(standardText, uploadFileId);
+            JsonNode chatResp = difyService.runWorkflow(id, standardText, uploadFileId);
 
             // 3. 解析响应 - 对话型应用的响应格式
             ObjectMapper mapper = new ObjectMapper();
@@ -77,9 +99,9 @@ public class DifyController {
                 // 返回完整响应用于调试
                 return Result.success(chatResp);
             }
-        } catch (Exception ex) {
-            log.error("dify evaluate failed", ex);
-            return Result.error("dify evaluate failed: " + ex.getMessage());
+        } catch (Exception e) {
+            log.error("查询失败：", e);
+            return Result.error("系统错误：" + e.getMessage());
         }
     }
 }

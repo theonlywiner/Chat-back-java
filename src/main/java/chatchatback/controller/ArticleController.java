@@ -92,7 +92,7 @@ public class ArticleController {
     /**
      * 7. 根据mysql模糊匹配古文内容（paragraphs），只比较前113588条，返回前5条
      */
-    @GetMapping("/search/mysql/paragraph")
+    @GetMapping("/search/myaragrapsql/ph")
     public Result searchParagraphByAncientTextMysql(String keyword) {
         return Result.success(bookService.searchAncientTextByKeywordMysql(keyword));
     }

@@ -7,9 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PoemPageQueryGradeDTO {
-    private Integer page = 1;
-    private Integer pageSize = 5;
+public class PoemPageQueryGradeDTO extends PageQuery{
     private Long gradeId;
     private String name;
 }

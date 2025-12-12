@@ -7,9 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PoemPageQueryDTO {
-    private Integer page = 1;      // 新增页码参数
-    private Integer pageSize = 5; // 规范参数名
+public class PoemPageQueryDTO extends PageQuery{
     private String name;
     private String keyword;     //关键词，查询古文内容
     private Long dynastyId;     //关键词匹配中的朝代

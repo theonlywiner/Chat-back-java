@@ -10,4 +10,6 @@ import org.springframework.stereotype.Component;
 public class DifyProperties {
     private String baseUrl;
     private String apiKey;
+
+    private String apiTest;
 }

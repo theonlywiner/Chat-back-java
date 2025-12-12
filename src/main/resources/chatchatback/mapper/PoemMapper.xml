@@ -15,6 +15,9 @@
         <result property="fullModernContent" column="full_modern_content"/>
         <result property="annotation" column="annotation"/>
         <result property="appreciation" column="appreciation"/>
+        <result property="gradeId" column="grade_id"/>
+        <result property="grade" column="grade"/>
+        <result property="page" column="page"/>
         <result property="background" column="background"/>
         <result property="peopleAppreciation" column="people_appreciation"/>
         <!-- 关键配置：指定类型处理器 -->
@@ -34,6 +37,8 @@
         p.full_ancient_content,
         p.full_modern_content,
         p.links,
+        pt.grade_id,
+        pt.page,
         ap.name as author,
         dy.name as dynasty
         FROM poems p

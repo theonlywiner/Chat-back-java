@@ -12,6 +12,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -45,5 +48,13 @@ public class QuestionsServiceImpl implements QuestionsService {
     @Override
     public void deleteQuestions(String sessionId) {
         questionsMapper.deleteQuestions(sessionId);
+    }
+
+    /**
+     * 根据诗词名称和题目类型查询相关题目，当questionType为空时返回该文章下所有类型题目
+     */
+    @Override
+    public List<Map<String, Object>> getQuestionsByPoemNameAndType(String poemName, String questionType) {
+        return questionsMapper.getQuestionsByPoemNameAndType(poemName, questionType);
     }
 }

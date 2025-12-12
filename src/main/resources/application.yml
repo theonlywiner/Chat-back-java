@@ -4,7 +4,7 @@ spring:
 
   # 配置环境
   profiles:
-    active: local
+    active: dev 
 
   datasource:
     #配置数据库连接信息
@@ -18,10 +18,16 @@ spring:
     password: ${chatchat.db.pw}
   servlet:
     multipart:
-      #最大单个文件大小
-      max-file-size: 10MB
-      #最大请求大小（包括所有文件和表单数据）
-      max-request-size: 100MB
+      # 启用 multipart 上传
+      enabled: true
+      # 最大单个文件大小 - 调整为200MB
+      max-file-size: 200MB
+      # 最大请求大小（包括所有文件和表单数据）- 调整为200MB
+      max-request-size: 200MB
+      # 文件大小阈值，超过此值会写入临时文件
+      file-size-threshold: 2KB
+      # 临时文件存储位置
+      location: /tmp
 
   data:
     redis:
@@ -31,6 +37,12 @@ spring:
       port: 6379
       password: ${chatchat.redis.pw}
       database: 1
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
 
   cache:
     type: redis
@@ -66,8 +78,8 @@ chatchat:
       #管理端配置
       # 设置jwt签名加密时使用的秘钥
       admin-secret-key: zisuChatChatXinTaiBengDiaoLeKuaiLaiBangBangWo
-      # 设置jwt过期时间(6h)
-      admin-ttl: 21600000
+      # 设置jwt过期时间(48h)
+      admin-ttl: 172800000
       # 设置前端传递过来的令牌名称
       admin-token-name: token
     # elasticsearch
@@ -77,9 +89,11 @@ chatchat:
       api:
         base-url: http://121.40.171.211/v1
         api-key: app-HF0OsTrV7RAcgfk58YcYvFUN
+        api-test: app-t8gR87h155kLi0acazrdvu9L
+
 server:
   port: 8848
   ssl:
     key-store: classpath:zhixunshiyun.yezhiqiu.cn.pfx
-    key-store-password: jv3g4g93
+    key-store-password: w87so27t
     key-store-type: PKCS12

@@ -38,7 +38,7 @@ public class SentenceController {
     }
 
     /**
-     * 断句技巧生成题目
+     * ai断句技巧生成题目
      * @return
      */
     @PostMapping("/generate-questions")
@@ -88,5 +88,29 @@ public class SentenceController {
                 .build();
         userExerciseAnswersService.saveAnswer(record);
         return Result.success();
+    }
+
+    /**
+     * 获取用户做题记录列表
+     */
+    @GetMapping("/getuseranswers")
+    public Result getUserAnswers() {
+        log.info("获取用户做题记录...");
+        // 1.获取当前用户ID
+        Integer currentId = CurrentHolder.getCurrentId();
+        Long userId = currentId == null ? null : currentId.longValue();
+        return Result.success(userExerciseAnswersService.getUserAnswers(userId));
+    }
+
+    /**
+     * 获取用户详情回答情况
+     */
+    @GetMapping("/getuseranswerdetail")
+    public Result getUserAnswerDetail(Long id) {
+        log.info("获取用户详情回答情况...,id = {}", id);
+        // 1.获取当前用户ID
+        Integer currentId = CurrentHolder.getCurrentId();
+        Long userId = currentId == null ? null : currentId.longValue();
+        return Result.success(userExerciseAnswersService.getUserAnswerDetail(userId, id));
     }
 }

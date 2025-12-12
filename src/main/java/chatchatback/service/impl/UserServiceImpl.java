@@ -4,8 +4,10 @@ import chatchatback.constant.Constant;
 import chatchatback.constant.MessageConstant;
 import chatchatback.exception.AccountNotFoundException;
 import chatchatback.exception.PasswordErrorException;
+import chatchatback.mapper.GradeMapper;
 import chatchatback.mapper.UserMapper;
 import chatchatback.pojo.dto.LoginInfoDTO;
+import chatchatback.pojo.entity.Grade;
 import chatchatback.service.UserService;
 import chatchatback.utils.CurrentHolder;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,8 @@ public class UserServiceImpl implements UserService {
 
     // 注入 BCrypt 加密器
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    @Autowired
+    private GradeMapper gradeMapper;
 
     // 注册接口
     @Override
@@ -61,12 +65,13 @@ public class UserServiceImpl implements UserService {
             throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
         }
 
+        user.setGradeName(gradeMapper.getGradeNameByGradeId(user.getGradeId()));
         return user;
     }
 
     // 修改年级
     @Override
-    public void updateGrade(LoginInfoDTO loginInfoDTO) {
+    public Grade updateGrade(LoginInfoDTO loginInfoDTO) {
         int id = CurrentHolder.getCurrentId();
         int gradeId = loginInfoDTO.getGradeId();
         if (gradeId > Constant.MaxGradeId || gradeId <= 0) {
@@ -74,5 +79,7 @@ public class UserServiceImpl implements UserService {
         }
 
         userMapper.updateGrade(id, gradeId);
+        Grade grade = new Grade((long) gradeId, gradeMapper.getGradeNameByGradeId(gradeId));
+        return grade;
     }
 }

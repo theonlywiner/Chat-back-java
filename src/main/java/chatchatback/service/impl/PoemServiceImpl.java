@@ -62,8 +62,10 @@ public class PoemServiceImpl implements PoemService {
     public PageResult<PoemListVO> getPoemsByGradeId(PoemPageQueryGradeDTO poemPageQueryGradeDTO) {
         // 获取年级信息
         int userId = CurrentHolder.getCurrentId();
-        Long gradeId = gradeMapper.getGradeIdById((long) userId);
-        poemPageQueryGradeDTO.setGradeId(gradeId);
+        Integer gradeId = gradeMapper.getGradeIdById(userId);
+        poemPageQueryGradeDTO.setGradeId(Long.valueOf(gradeId));
+        //获取年级
+        String grade = gradeMapper.getGradeNameByGradeId(gradeId);
 
         if (gradeId == MaxGradeId) {
             PoemPageQueryDTO poemPageQueryDTO = new PoemPageQueryDTO();
@@ -76,10 +78,25 @@ public class PoemServiceImpl implements PoemService {
             //设置分页信息
             PageHelper.startPage(poemPageQueryGradeDTO.getPage(), poemPageQueryGradeDTO.getPageSize());
 
-            //执行查询
-            Page<PoemListVO> poemList = (Page<PoemListVO>)poemMapper.getPoemsByGradeId(poemPageQueryGradeDTO);
-            log.info("获取诗词列表,{}",poemList.getResult());
-            return new PageResult<>(poemList.getTotal(), poemList.getResult());
+            //执行查询，获取原始 Poem 数据
+            Page<Poem> poemPage = (Page<Poem>) poemMapper.getPoemsByGradeId(poemPageQueryGradeDTO);
+
+            //手动转换为 PoemListVO
+            Page<PoemListVO> poemListVOPage = new Page<>();
+            poemPage.getResult().forEach(poem -> {
+                PoemListVO vo = new PoemListVO();
+                BeanUtils.copyProperties(poem, vo);
+                vo.setGrade(grade);
+                poemListVOPage.add(vo);
+            });
+
+            //设置分页信息
+            poemListVOPage.setTotal(poemPage.getTotal());
+            poemListVOPage.setPageNum(poemPage.getPageNum());
+            poemListVOPage.setPageSize(poemPage.getPageSize());
+
+            log.info("获取诗词列表,{}", poemListVOPage.getResult());
+            return new PageResult<>(poemListVOPage.getTotal(), poemListVOPage.getResult());
         }
     }
 

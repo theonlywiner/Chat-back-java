@@ -1,5 +1,7 @@
 package chatchatback.service.impl;
 
+import chatchatback.mapper.PoemMapper;
+import chatchatback.pojo.vo.PoemListVO;
 import chatchatback.properties.DifyProperties;
 import chatchatback.service.DifyService;
 import chatchatback.utils.CurrentHolder;
@@ -17,7 +19,13 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import chatchatback.pojo.entity.UserRecitationRecord;
+import chatchatback.mapper.UserRecitationRecordMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 @Slf4j
@@ -27,6 +35,27 @@ public class DifyServiceImpl implements DifyService {
     private final DifyProperties difyProperties;
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final PoemMapper poemMapper;
+
+    @Autowired
+    private UserRecitationRecordMapper userRecitationRecordMapper;
+
+    @Override
+    public List<UserRecitationRecord> getMyRecords() {
+        int userId = CurrentHolder.getCurrentId();
+        List<UserRecitationRecord> userRecitationRecords = userRecitationRecordMapper.selectByCurrentUser(userId);
+        List<Long> poemIds = userRecitationRecords.stream().map(UserRecitationRecord::getPoemId).toList();
+
+        // 将诗名列表转换为Map，提高查找效率
+        Map<Long, String> poemNameMap = poemMapper.getPoemNameByIds(poemIds).stream()
+                .collect(Collectors.toMap(PoemListVO::getId, PoemListVO::getName));
+
+        for (UserRecitationRecord record : userRecitationRecords) {
+            // 直接通过Map获取诗名
+            record.setPoemName(poemNameMap.get(record.getPoemId()));
+        }
+        return userRecitationRecords;
+    }
 
     @Override
     public JsonNode uploadFile(MultipartFile file) throws Exception {
@@ -65,7 +94,7 @@ public class DifyServiceImpl implements DifyService {
     }
 
     @Override
-    public JsonNode runWorkflow(String standardText, String uploadFileId) throws Exception {
+    public JsonNode runWorkflow(Long poemId, String standardText, String uploadFileId) throws Exception {
         String url = difyProperties.getBaseUrl() + "/chat-messages";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -110,6 +139,54 @@ public class DifyServiceImpl implements DifyService {
 
         JsonNode response = objectMapper.readTree(resp.getBody());
         log.info("Chat message response: {}", response);
+        // 尝试从 response 中提取评分 outputs 并保存一条记录
+        try {
+            JsonNode outputs = null;
+            if (response.has("data") && response.get("data").has("outputs")) {
+                outputs = response.get("data").get("outputs");
+            } else if (response.has("answer")) {
+                JsonNode answerNode = response.get("answer");
+                if (answerNode.isTextual()) {
+                    outputs = objectMapper.readTree(answerNode.asText());
+                } else {
+                    outputs = answerNode;
+                }
+            }
+
+            if (outputs != null) {
+                UserRecitationRecord record = new UserRecitationRecord();
+                Integer currentId2 = CurrentHolder.getCurrentId();
+                if (currentId2 != null) record.setUserId(currentId2.longValue());
+                record.setPoemId(poemId);
+
+                // 新增：从 outputs 中提取 student_text 并保存
+                if (outputs.has("student_text")) {
+                    record.setStudentText(outputs.get("student_text").asText());
+                }
+
+                if (outputs.has("overall_score")) record.setOverallScore(outputs.get("overall_score").asInt());
+                JsonNode ds = outputs.get("detailed_scores");
+                if (ds != null) {
+                    if (ds.has("content_completeness")) record.setContentCompleteness(ds.get("content_completeness").asInt());
+                    if (ds.has("structural_correctness")) record.setStructuralCorrectness(ds.get("structural_correctness").asInt());
+                    if (ds.has("key_imagery_preservation")) record.setKeyImageryPreservation(ds.get("key_imagery_preservation").asInt());
+                }
+                JsonNode feedback = outputs.get("feedback");
+                if (feedback != null) {
+                    if (feedback.has("praise")) record.setPraiseFeedback(feedback.get("praise").asText());
+                    if (feedback.has("suggestions")) record.setSuggestions(objectMapper.convertValue(feedback.get("suggestions"), objectMapper.getTypeFactory().constructCollectionType(java.util.List.class, String.class)));
+                }
+                if (outputs.has("major_errors")) {
+                    record.setMajorErrors(objectMapper.convertValue(outputs.get("major_errors"), objectMapper.getTypeFactory().constructCollectionType(java.util.List.class, java.util.Map.class)));
+                }
+
+                int rows = userRecitationRecordMapper.insertRecord(record);
+                log.info("Inserted recitation record rows={}, id={}", rows, record.getId());
+            }
+        } catch (Exception ex) {
+            log.warn("Failed to persist recitation record: {}", ex.getMessage());
+        }
+
         return response;
     }
 }

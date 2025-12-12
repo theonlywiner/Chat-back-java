@@ -27,4 +27,5 @@ public class LoginInfoDTO {
 
     //年级字段
     private Integer gradeId;
+    private String gradeName;
 }

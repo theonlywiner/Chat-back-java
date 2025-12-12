@@ -2,6 +2,7 @@ package chatchatback.service;
 
 
 import chatchatback.pojo.dto.LoginInfoDTO;
+import chatchatback.pojo.entity.Grade;
 
 public interface UserService {
 
@@ -9,5 +10,5 @@ public interface UserService {
 
     LoginInfoDTO login(LoginInfoDTO loginInfoDTO);
 
-    void updateGrade(LoginInfoDTO loginInfoDTO);
+    Grade updateGrade(LoginInfoDTO loginInfoDTO);
 }

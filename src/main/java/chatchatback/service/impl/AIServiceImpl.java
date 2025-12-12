@@ -185,7 +185,11 @@ public class AIServiceImpl implements AIService {
                 exerciseQuestionsList.add(eq);
             }
             sentenceQuestionVO.setExerciseQuestionsList(exerciseQuestionsList);
-            saveGenerateSentenceQuestions(sentenceQuestionVO);
+            List<Long> questionIds = saveGenerateSentenceQuestions(sentenceQuestionVO);
+            //批量修改id
+            for (int i = 0; i < exerciseQuestionsList.size(); i++) {
+                exerciseQuestionsList.get(i).setId(questionIds.get(i));
+            }
         } catch (Exception e) {
             log.error("生成题目失败：{}", e.getMessage());
             throw new RuntimeException("生成题目失败");
@@ -194,9 +198,10 @@ public class AIServiceImpl implements AIService {
         return sentenceQuestionVO;
     }
 
-    public void saveGenerateSentenceQuestions(SentenceQuestionVO sentenceQuestionVO) {
+    public List<Long> saveGenerateSentenceQuestions(SentenceQuestionVO sentenceQuestionVO) {
         //批量插入数组 的方法名 体现批量的意思
         List<ExerciseQuestions> exerciseQuestionsList = sentenceQuestionVO.getExerciseQuestionsList();
         sentenceMapper.insertBachAIQuestions(exerciseQuestionsList, sentenceQuestionVO.getId());
+        return exerciseQuestionsList.stream().map(ExerciseQuestions::getId).toList();
     }
 }

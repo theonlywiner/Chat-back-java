@@ -6,6 +6,7 @@ import chatchatback.pojo.entity.Dynasty;
 import chatchatback.pojo.entity.Poem;
 import chatchatback.pojo.vo.CountKeywordVO;
 import chatchatback.pojo.vo.PoemListVO;
+import com.github.pagehelper.Page;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
@@ -14,7 +15,7 @@ import java.util.List;
 @Mapper
 public interface PoemMapper {
     //根据年级id获取诗词列表,分页
-    List<PoemListVO> getPoemsByGradeId(PoemPageQueryGradeDTO poemPageQueryGradeDTO);
+    List<Poem> getPoemsByGradeId(PoemPageQueryGradeDTO poemPageQueryGradeDTO);
 
     //根据id获取诗词
     Poem getPoemById(Long id);

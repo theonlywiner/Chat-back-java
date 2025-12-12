@@ -2,9 +2,11 @@ package chatchatback.config;
 
 import chatchatback.interceptor.TokenInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.format.datetime.standard.DateTimeFormatterRegistrar;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -28,6 +30,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/users/grade")   // UserController用户修改年级字段
                 .addPathPatterns("/poemsByGrade")  // PoemController
                 .addPathPatterns("/dify/**") //DifyController
+                .addPathPatterns("/sse/**") // 新增：保护 SSE 接口
+                .addPathPatterns("/questions/**")
                 .excludePathPatterns("/login"); // 放行登录接口
     }
 
