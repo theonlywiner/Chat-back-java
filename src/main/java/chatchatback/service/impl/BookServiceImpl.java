@@ -1,9 +1,12 @@
 package chatchatback.service.impl;
 
+import chatchatback.exception.BaseException;
 import chatchatback.mapper.BookMapper;
+import chatchatback.mapper.WordMapper;
 import chatchatback.pojo.dto.*;
 import chatchatback.pojo.entity.ClassicPoemInfo;
 import chatchatback.pojo.entity.Paragraphs;
+import chatchatback.pojo.entity.PhoneticInitials;
 import chatchatback.pojo.vo.NavTreeDataVO;
 import chatchatback.service.BookService;
 import lombok.extern.slf4j.Slf4j;
@@ -18,9 +21,6 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -35,13 +35,22 @@ public class BookServiceImpl implements BookService {
     @Autowired
     private RestHighLevelClient esClient;
 
+    @Autowired
+    private WordMapper wordMapper;
+
     /**
      *  1.首页书籍信息获取
      * */
     @Override
-    public List<ClassicPoemInfo> getAllBooks() {
+    public List<ClassicPoemInfo> getAllBooks(String initial) {
         try {
-            return bookMapper.selectAllBooksOptimized();
+            if (initial.equals("全部")) {
+                return bookMapper.selectAllBooksOptimized(null);
+            }else if (initial.matches("[a-zA-Z]+")) {
+                return bookMapper.selectAllBooksOptimized(initial);
+            }else {
+                throw new BaseException("传入参数错误");
+            }
         } catch (Exception e) {
             throw new RuntimeException("数据获取失败: " + e.getMessage());
         }
@@ -177,5 +186,14 @@ public class BookServiceImpl implements BookService {
         // 只查前113588条，模糊匹配ancient_text字段，返回前5条
         List<Paragraphs> allMatched = bookMapper.searchAncientTextByKeywordMysqlAll(keyword);
         return allMatched.stream().limit(5).toList();
+    }
+
+    // 7.获取首字母列表
+    @Override
+    public List<PhoneticInitials> getInitial() {
+        List<PhoneticInitials> phoneticInitials = wordMapper.searchWordClass();
+        //添加全部
+        phoneticInitials.addFirst(new PhoneticInitials(null, "全部"));
+        return phoneticInitials;
     }
 }

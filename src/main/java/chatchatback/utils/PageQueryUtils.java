@@ -11,16 +11,20 @@ public class PageQueryUtils {
     @Autowired
     private PoemMapper poemMapper;
 
+    // 修改calculateLastId
     public void calculateLastId(PoemPageQueryDTO dto) {
-        if (dto.getPage() == 1) {
-            dto.setLastId(0L);
-            return;
+        // 参数验证
+        if (dto.getPage() == null || dto.getPage() < 1) {
+            dto.setPage(1);
         }
 
-        // 动态查询上一页最后ID
+        if (dto.getPageSize() == null || dto.getPageSize() < 1) {
+            dto.setPageSize(10);
+        }
+
+        // 计算offset
         Long offset = (long) (dto.getPage() - 1) * dto.getPageSize();
-        dto.setOffset(offset);
-        dto.setLastId(poemMapper.findOffsetId(dto));
+        dto.setOffset(Math.max(0, offset));
     }
 
 }

@@ -19,6 +19,7 @@ public class ClassicPoemInfo implements Serializable {
 
     private Long id;
     private String title;
+    private String initial;
     private String author;
     private String dynasty;
     private String description;

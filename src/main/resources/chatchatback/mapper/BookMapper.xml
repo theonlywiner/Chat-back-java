@@ -17,22 +17,33 @@
 
     <!-- 1.首页信息查询 -->
     <select id="selectAllBooksOptimized" resultType="chatchatback.pojo.entity.ClassicPoemInfo">
-        SELECT id, title, chapterFirstId FROM (
-        SELECT bs.id, bs.name AS title, MIN(c.id) AS chapterFirstId
+        SELECT id, title, chapterFirstId, initial FROM (
+        SELECT bs.id, bs.name AS title, MIN(c.id) AS chapterFirstId, bs.initial as initial
         FROM bookseries bs
         LEFT JOIN books b ON bs.id = b.series_id
         LEFT JOIN chapters c ON b.id = c.book_id
-        GROUP BY bs.id
+        <where>
+            <if test="initial != null">
+                bs.initial = #{initial}
+            </if>
+        </where>
+        GROUP BY bs.id, bs.name, bs.initial
         UNION ALL
-        SELECT b.id, b.name AS title, MIN(c.id) AS chapterFirstId
+        SELECT b.id, b.name AS title, MIN(c.id) AS chapterFirstId, b.initial as initial
         FROM books b
         LEFT JOIN chapters c ON b.id = c.book_id
         WHERE b.series_id IS NULL
-        GROUP BY b.id
+        <if test="initial != null">
+            AND b.initial = #{initial}
+        </if>
+        GROUP BY b.id, b.name, b.initial
         UNION ALL
-        SELECT id, name AS title, id AS chapterFirstId
+        SELECT id, name AS title, id AS chapterFirstId, chapters.initial as initial
         FROM chapters
         WHERE book_id IS NULL
+        <if test="initial != null">
+            AND chapters.initial = #{initial}
+        </if>
         ) t ORDER BY id
     </select>
 
@@ -112,5 +123,11 @@
                 and #{endIndex} >= c.id and c.id >= #{startIndex}
             </if>
         </where>
+    </select>
+
+    <select id="getInitial" resultType="java.lang.String">
+        SELECT DISTINCT initial
+        FROM bookseries
+        ORDER BY initial
     </select>
 </mapper>

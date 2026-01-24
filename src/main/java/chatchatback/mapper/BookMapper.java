@@ -13,7 +13,7 @@ import java.util.Map;
 @Mapper
 public interface BookMapper {
     //首页书籍信息获取
-    List<ClassicPoemInfo> selectAllBooksOptimized();
+    List<ClassicPoemInfo> selectAllBooksOptimized(String initial);
 
     //根据id查询chapter表的数据
     ClassicPoemInfo selectPoemDetailById(Long  chapterId);
@@ -49,4 +49,7 @@ public interface BookMapper {
 
     @Select("SELECT * FROM paragraphs WHERE ancient_text LIKE CONCAT('%', #{keyword}, '%') limit 5")
     List<Paragraphs> searchAncientTextByKeywordMysqlAll(String keyword);
+
+    //获取首字母列表
+    List<String> getInitial();
 }

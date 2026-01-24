@@ -4,7 +4,7 @@ spring:
 
   # 配置环境
   profiles:
-    active: dev 
+    active: local
 
   datasource:
     #配置数据库连接信息
@@ -88,8 +88,13 @@ chatchat:
     dify:
       api:
         base-url: http://121.40.171.211/v1
-        api-key: app-HF0OsTrV7RAcgfk58YcYvFUN
-        api-test: app-t8gR87h155kLi0acazrdvu9L
+        api-key: app-Qj3ofqNZjisX7FThyT3JOGVz
+        api-test: app-qsKmToWt1fVLJ2BifLsfH6De
+    coze:
+      api-url: https://api.coze.cn/v1/workflow/stream_run
+      token: pat_8ItbiUR4qFV9VYxQiiWJFGcXUWgajZrQ1Re90NqDGt4QMglSXRfv2UOZk0W9s48a
+      workflow-id: "7586660449605959680"
+
 
 server:
   port: 8848

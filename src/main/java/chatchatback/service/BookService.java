@@ -3,6 +3,7 @@ package chatchatback.service;
 import chatchatback.pojo.dto.SearchQueryParamDTO;
 import chatchatback.pojo.entity.ClassicPoemInfo;
 import chatchatback.pojo.entity.Paragraphs;
+import chatchatback.pojo.entity.PhoneticInitials;
 import chatchatback.pojo.vo.NavTreeDataVO;
 import chatchatback.pojo.dto.PageResult;
 import jakarta.validation.constraints.Min;
@@ -12,7 +13,7 @@ import java.util.List;
 
 public interface BookService {
     //1.首页书籍信息获取
-    List<ClassicPoemInfo> getAllBooks();
+    List<ClassicPoemInfo> getAllBooks(String initial);
 
     //2.书籍详情基本信息获取
     ClassicPoemInfo getClassicPoemInfo(@Min(0) Long  id) throws NotFoundException;
@@ -30,4 +31,8 @@ public interface BookService {
     public List<Paragraphs> searchAncientTextByKeyword(String keyword);
 
     List<Paragraphs> searchAncientTextByKeywordMysql(String keyword);
+
+
+    //7.获取首字母列表
+    List<PhoneticInitials> getInitial();
 }
